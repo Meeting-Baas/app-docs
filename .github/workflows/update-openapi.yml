@@ -147,15 +147,16 @@ jobs:
       - name: Build project with updated spec
         if: steps.fetch-spec.outputs.has_changes == 'true' && steps.check-prs.outputs.create_pr == 'true'
         run: |
-          # Install dependencies (no need to remove node_modules as cache will be used)
+          # Install dependencies
           pnpm install
-          # Use the correct build command from package.json
+          # Build commands
           pnpm with-env tsx server/db/migrate
           pnpm with-env next build
         env:
-          # Add any required environment variables here
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          # Add other environment variables as needed
+          NEXT_PUBLIC_ORAMA_AI_API_KEY: ${{ secrets.NEXT_PUBLIC_ORAMA_AI_API_KEY }}
+          NEXT_PUBLIC_ORAMA_AI_ENDPOINT: ${{ secrets.NEXT_PUBLIC_ORAMA_AI_ENDPOINT }}
+          NEXT_PUBLIC_ORAMA_SEARCH_API_KEY: ${{ secrets.NEXT_PUBLIC_ORAMA_SEARCH_API_KEY }}
+          NEXT_PUBLIC_ORAMA_SEARCH_ENDPOINT: ${{ secrets.NEXT_PUBLIC_ORAMA_SEARCH_ENDPOINT }}
 
       - name: Upload artifacts
         if: steps.fetch-spec.outputs.has_changes == 'true' && steps.check-prs.outputs.create_pr == 'true'
