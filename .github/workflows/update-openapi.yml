@@ -25,13 +25,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
-          cache-dependency-path: '**/pnpm-lock.yaml'
-
-      # Ensure pnpm is in PATH
-      - name: Setup pnpm path
-        run: |
-          echo "$(pnpm -g bin)" >> $GITHUB_PATH
 
       - name: Install jq for JSON processing
         run: sudo apt-get install -y jq
