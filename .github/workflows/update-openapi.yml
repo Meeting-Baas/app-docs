@@ -35,8 +35,12 @@ jobs:
           # Create a temp directory
           mkdir -p tmp
 
-          # Fetch the latest OpenAPI spec
-          curl -s https://api.meetingbaas.com/openapi.json > tmp/raw-openapi.json
+          # Fetch the latest OpenAPI spec with error handling
+          if ! curl -s -f https://api.meetingbaas.com/openapi.json > tmp/raw-openapi.json; then
+            echo "Error: Failed to download OpenAPI specification"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
 
           # Format the downloaded spec consistently
           cat tmp/raw-openapi.json | jq -S . > tmp/openapi.json
@@ -118,7 +122,7 @@ jobs:
 
           # Commit the change
           git add openapi.json
-          git commit -m "Update OpenAPI spec - $(date +'%Y-%m-%d %H:%M:%S')"
+          git commit -m "Update OpenAPI spec - $(date +'%Y-%m-%d %H:%M:%S') [Checksum: ${{ steps.fetch-spec.outputs.checksum }}]"
 
           # Push the branch
           git push origin $BRANCH_NAME
@@ -145,12 +149,17 @@ jobs:
           # Clean and rebuild
           rm -rf ./node_modules
           pnpm install
-          pnpm build:pre
-          pnpm run build
+          # Use the correct build command from package.json
+          pnpm with-env tsx server/db/migrate
+          pnpm with-env next build
+        env:
+          # Add any required environment variables here
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # Add other environment variables as needed
 
       - name: Upload artifacts
         if: steps.fetch-spec.outputs.has_changes == 'true' && steps.check-prs.outputs.create_pr == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-output
           path: |
