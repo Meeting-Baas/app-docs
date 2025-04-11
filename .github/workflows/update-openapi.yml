@@ -2,8 +2,8 @@ name: Update OpenAPI Specification
 
 on:
   schedule:
-    # Run every hour
-    - cron: '0 * * * *'
+    # Run at minute 24 of every hour
+    - cron: '24 * * * *'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
