@@ -154,9 +154,11 @@ jobs:
         run: |
           # Install dependencies
           pnpm install
+          # Create empty .env file
+          touch .env
           # Build commands
-          pnpm with-env tsx server/db/migrate
-          pnpm with-env next build
+          pnpm tsx server/db/migrate
+          pnpm next build
         env:
           NEXT_PUBLIC_ORAMA_AI_API_KEY: ${{ secrets.NEXT_PUBLIC_ORAMA_AI_API_KEY }}
           NEXT_PUBLIC_ORAMA_AI_ENDPOINT: ${{ secrets.NEXT_PUBLIC_ORAMA_AI_ENDPOINT }}
