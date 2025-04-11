@@ -11,9 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Need full history for branch creation
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -21,11 +27,10 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          run_install: false
+      # Ensure pnpm is in PATH
+      - name: Setup pnpm path
+        run: |
+          echo "$(pnpm -g bin)" >> $GITHUB_PATH
 
       - name: Install jq for JSON processing
         run: sudo apt-get install -y jq
