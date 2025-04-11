@@ -16,9 +16,10 @@ jobs:
           fetch-depth: 0 # Need full history for branch creation
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'pnpm'
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
@@ -146,8 +147,7 @@ jobs:
       - name: Build project with updated spec
         if: steps.fetch-spec.outputs.has_changes == 'true' && steps.check-prs.outputs.create_pr == 'true'
         run: |
-          # Clean and rebuild
-          rm -rf ./node_modules
+          # Install dependencies (no need to remove node_modules as cache will be used)
           pnpm install
           # Use the correct build command from package.json
           pnpm with-env tsx server/db/migrate
