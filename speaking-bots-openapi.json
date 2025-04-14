@@ -1,0 +1,244 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Speaking Bots API",
+    "description": "API for creating and managing speaking bots in meetings, built on MeetingBaaS and Pipecat.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["General"],
+        "summary": "Root",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          }
+        }
+      }
+    },
+    "/bots": {
+      "post": {
+        "tags": ["Bots"],
+        "summary": "Join Meeting",
+        "description": "Have a bot join a meeting, mirroring MeetingBaas API structure.",
+        "operationId": "join_meeting_bots_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/BotRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": { "application/json": { "schema": {} } }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bots/{bot_id}": {
+      "delete": {
+        "tags": ["Bots"],
+        "summary": "Leave Bot",
+        "description": "Remove a bot from a meeting by its ID.\n\nThis will:\n1. Call the MeetingBaas API to make the bot leave\n2. Close WebSocket connections if they exist\n3. Terminate the associated Pipecat process",
+        "operationId": "leave_bot_bots__bot_id__delete",
+        "parameters": [
+          {
+            "name": "bot_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Bot Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LeaveBotRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Leave Bot Bots  Bot Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients/{client_id}": {
+      "delete": {
+        "tags": ["Clients"],
+        "summary": "Leave Client",
+        "description": "Remove a bot from a meeting by its client ID.\nThis is a convenience endpoint that sets the client_id and calls leave_bot.",
+        "operationId": "leave_client_clients__client_id__delete",
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "title": "Client Id" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LeaveBotRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Response Leave Client Clients  Client Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BotRequest": {
+        "properties": {
+          "meeting_url": { "type": "string", "title": "Meeting Url" },
+          "bot_name": { "type": "string", "title": "Bot Name", "default": "" },
+          "personas": {
+            "anyOf": [
+              { "items": { "type": "string" }, "type": "array" },
+              { "type": "null" }
+            ],
+            "title": "Personas"
+          },
+          "recorder_only": {
+            "type": "boolean",
+            "title": "Recorder Only",
+            "default": false
+          },
+          "websocket_url": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Websocket Url"
+          },
+          "meeting_baas_api_key": {
+            "type": "string",
+            "title": "Meeting Baas Api Key"
+          },
+          "bot_image": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Bot Image"
+          },
+          "entry_message": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Entry Message"
+          },
+          "extra": {
+            "anyOf": [{ "type": "object" }, { "type": "null" }],
+            "title": "Extra"
+          },
+          "streaming_audio_frequency": {
+            "type": "string",
+            "title": "Streaming Audio Frequency",
+            "default": "24khz"
+          },
+          "enable_tools": {
+            "type": "boolean",
+            "title": "Enable Tools",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": ["meeting_url", "meeting_baas_api_key"],
+        "title": "BotRequest",
+        "description": "Request model for a bot joining a meeting, based on MeetingBaaS API"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": { "$ref": "#/components/schemas/ValidationError" },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LeaveBotRequest": {
+        "properties": {
+          "meeting_baas_api_key": {
+            "type": "string",
+            "title": "Meeting Baas Api Key"
+          },
+          "client_id": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Client Id"
+          },
+          "bot_id": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Bot Id"
+          }
+        },
+        "type": "object",
+        "required": ["meeting_baas_api_key"],
+        "title": "LeaveBotRequest",
+        "description": "Request model for making a bot leave a meeting"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": { "type": "string", "title": "Message" },
+          "type": { "type": "string", "title": "Error Type" }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
