@@ -1,29 +1,16 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Speaking Bots API",
-    "description": "API for creating and managing speaking bots in meetings, built on MeetingBaaS and Pipecat.",
-    "version": "0.1.0"
+    "title": "Speaking Meeting Bot API",
+    "description": "API for deploying AI-powered speaking agents in video meetings. Combines MeetingBaas for meeting connectivity with Pipecat for voice AI processing.",
+    "version": "0.0.1"
   },
   "paths": {
-    "/": {
-      "get": {
-        "tags": ["General"],
-        "summary": "Root",
-        "operationId": "root__get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": { "application/json": { "schema": {} } }
-          }
-        }
-      }
-    },
     "/bots": {
       "post": {
-        "tags": ["Bots"],
+        "tags": ["bots"],
         "summary": "Join Meeting",
-        "description": "Have a bot join a meeting, mirroring MeetingBaas API structure.",
+        "description": "Create and deploy a speaking bot in a meeting.\n\nLaunches an AI-powered bot that joins a video meeting through MeetingBaas\nand processes audio using Pipecat's voice AI framework.",
         "operationId": "join_meeting_bots_post",
         "requestBody": {
           "content": {
@@ -34,9 +21,19 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": { "application/json": { "schema": {} } }
+          "201": {
+            "description": "Bot successfully created and joined the meeting",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/JoinResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Missing required fields or invalid data"
+          },
+          "500": {
+            "description": "Server error - Failed to create bot through MeetingBaas API"
           },
           "422": {
             "description": "Validation Error",
@@ -51,7 +48,7 @@
     },
     "/bots/{bot_id}": {
       "delete": {
-        "tags": ["Bots"],
+        "tags": ["bots"],
         "summary": "Leave Bot",
         "description": "Remove a bot from a meeting by its ID.\n\nThis will:\n1. Call the MeetingBaas API to make the bot leave\n2. Close WebSocket connections if they exist\n3. Terminate the associated Pipecat process",
         "operationId": "leave_bot_bots__bot_id__delete",
@@ -73,7 +70,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Bot successfully removed from meeting",
             "content": {
               "application/json": {
                 "schema": {
@@ -82,6 +79,15 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Bad request - Missing required fields or identifiers"
+          },
+          "404": {
+            "description": "Bot not found - No bot with the specified ID"
+          },
+          "500": {
+            "description": "Server error - Failed to remove bot from MeetingBaas API"
           },
           "422": {
             "description": "Validation Error",
@@ -94,47 +100,16 @@
         }
       }
     },
-    "/clients/{client_id}": {
-      "delete": {
-        "tags": ["Clients"],
-        "summary": "Leave Client",
-        "description": "Remove a bot from a meeting by its client ID.\nThis is a convenience endpoint that sets the client_id and calls leave_bot.",
-        "operationId": "leave_client_clients__client_id__delete",
-        "parameters": [
-          {
-            "name": "client_id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string", "title": "Client Id" }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/LeaveBotRequest" }
-            }
-          }
-        },
+    "/health": {
+      "get": {
+        "tags": ["system"],
+        "summary": "Health",
+        "description": "Health check endpoint",
+        "operationId": "health_health_get",
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "title": "Response Leave Client Clients  Client Id  Delete"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
-              }
-            }
+            "content": { "application/json": { "schema": {} } }
           }
         }
       }
@@ -144,23 +119,24 @@
     "schemas": {
       "BotRequest": {
         "properties": {
-          "meeting_url": { "type": "string", "title": "Meeting Url" },
-          "bot_name": { "type": "string", "title": "Bot Name", "default": "" },
+          "meeting_url": {
+            "type": "string",
+            "title": "Meeting Url",
+            "description": "URL of the Google Meet, Zoom or Microsoft Teams meeting to join"
+          },
+          "bot_name": {
+            "type": "string",
+            "title": "Bot Name",
+            "description": "Name to display for the bot in the meeting",
+            "default": ""
+          },
           "personas": {
             "anyOf": [
               { "items": { "type": "string" }, "type": "array" },
               { "type": "null" }
             ],
-            "title": "Personas"
-          },
-          "recorder_only": {
-            "type": "boolean",
-            "title": "Recorder Only",
-            "default": false
-          },
-          "websocket_url": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
-            "title": "Websocket Url"
+            "title": "Personas",
+            "description": "List of persona names to use. The first available will be selected."
           },
           "meeting_baas_api_key": {
             "type": "string",
@@ -178,11 +154,6 @@
             "anyOf": [{ "type": "object" }, { "type": "null" }],
             "title": "Extra"
           },
-          "streaming_audio_frequency": {
-            "type": "string",
-            "title": "Streaming Audio Frequency",
-            "default": "24khz"
-          },
           "enable_tools": {
             "type": "boolean",
             "title": "Enable Tools",
@@ -192,7 +163,17 @@
         "type": "object",
         "required": ["meeting_url", "meeting_baas_api_key"],
         "title": "BotRequest",
-        "description": "Request model for a bot joining a meeting, based on MeetingBaaS API"
+        "description": "Request model for creating a speaking bot in a meeting.",
+        "example": {
+          "bot_image": "https://example.com/bot-avatar.png",
+          "bot_name": "Meeting Assistant",
+          "enable_tools": true,
+          "entry_message": "Hello! I'm here to assist with the meeting.",
+          "extra": { "company": "ACME Corp", "meeting_purpose": "Weekly sync" },
+          "meeting_baas_api_key": "mb_api_xxxxxxxxxxxxxxxxxxxxxxxx",
+          "meeting_url": "https://meet.google.com/abc-defg-hij",
+          "personas": ["helpful_assistant", "meeting_facilitator"]
+        }
       },
       "HTTPValidationError": {
         "properties": {
@@ -205,19 +186,30 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "JoinResponse": {
+        "properties": {
+          "bot_id": {
+            "type": "string",
+            "title": "Bot Id",
+            "description": "The MeetingBaas bot ID used for API operations with MeetingBaas"
+          }
+        },
+        "type": "object",
+        "required": ["bot_id"],
+        "title": "JoinResponse",
+        "description": "Response model for a bot joining a meeting"
+      },
       "LeaveBotRequest": {
         "properties": {
           "meeting_baas_api_key": {
             "type": "string",
-            "title": "Meeting Baas Api Key"
-          },
-          "client_id": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
-            "title": "Client Id"
+            "title": "Meeting Baas Api Key",
+            "description": "Your MeetingBaas API key for authentication"
           },
           "bot_id": {
             "anyOf": [{ "type": "string" }, { "type": "null" }],
-            "title": "Bot Id"
+            "title": "Bot Id",
+            "description": "The MeetingBaas bot ID to remove from the meeting. This will also close the WebSocket connection made through Pipecat by this bot."
           }
         },
         "type": "object",
@@ -240,5 +232,12 @@
         "title": "ValidationError"
       }
     }
-  }
+  },
+  "servers": [
+    {
+      "url": "https://speaking.meetingbaas.com",
+      "description": "Production server"
+    },
+    { "url": "/", "description": "Local development server" }
+  ]
 }
