@@ -4,22 +4,23 @@ description: Deploy AI-powered speaking agents in video meetings
 icon: Book
 ---
 
+This small open-source API demonstrates the capabilities of [MeetingBaas](https://meetingbaas.com) 🐟's video meeting APIs by integrating with [Pipecat](https://github.com/pipecat-ai/pipecat)'s Python framework for building voice and multimodal conversational agents:
+
 ```bash
 curl -X POST https://speaking.meetingbaas.com/bots \
   -H "Content-Type: application/json" \
   -d '{
     "meeting_url": "https://us06web.zoom.us/j/123456789?pwd=example",
+    "personas": ["baas_onboarder"],
     "meeting_baas_api_key": "your-api-key"
   }'
 ```
-
-This small open-source API demonstrates the capabilities of [MeetingBaas](https://meetingbaas.com) 🐟's video meeting APIs by integrating with [Pipecat](https://github.com/pipecat-ai/pipecat)'s Python framework for building voice and multimodal conversational agents.
 
 <Card
   icon={<Github />}
   title="Speaking Meeting Bot"
   href="https://github.com/Meeting-Baas/speaking-meeting-bot"
-  description="Clone and star our repository to launch and scale AI-powered meeting agents"
+  description="Clone to customize and deploy your own meeting agents"
   external
 />
 
@@ -30,6 +31,8 @@ It extends Pipecat's [WebSocket server implementation](https://github.com/pipeca
 - Meeting agents that can join Google Meet, Zoom or Microsoft Teams through the [MeetingBaas API](https://meetingbaas.com)
 - Customizable personas with unique context
 - Support for running multiple instances locally or at scale
+
+This api is launched using Docker and fly.io[https://fly.io/].
 
 ## API Access
 
