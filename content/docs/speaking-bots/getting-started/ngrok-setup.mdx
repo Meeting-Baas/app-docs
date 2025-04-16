@@ -58,8 +58,54 @@ For more detailed information about ngrok configuration options, see the [offici
 This sets up two separate tunnels (proxy1 and proxy2) that will be used by your bots to establish WebSocket connections with the meeting platforms. To start both tunnels simultaneously, run:
 
 ```bash
-ngrok start --all
+ngrok start --all --config config/ngrok/config.yml
 ```
+
+The free tier of ngrok limits you to 2 concurrent tunnels, which means you can run up to 2 bots simultaneously in local development mode.
 
   </Accordion>
 </Accordions>
+
+## WebSocket URL Resolution
+
+When running the server in local development mode, it will automatically detect and use your ngrok URLs. The server determines the WebSocket URL to use in the following priority order:
+
+1. User-provided URL in the request (if specified in the `websocket_url` field)
+2. `BASE_URL` environment variable (recommended for production)
+3. ngrok URL in local development mode
+4. Auto-detection from request headers (fallback, not reliable in production)
+
+To use local development mode with automatic ngrok detection:
+
+```bash
+# Start the API server with local development mode enabled
+poetry run python run.py --local-dev
+```
+
+## Troubleshooting WebSocket Connections
+
+### Common Issues
+
+1. **Timing Issues with ngrok and Meeting Baas Bots**
+
+   Sometimes, due to WebSocket connection delays through ngrok, the Meeting Baas bots may join the meeting before your local bot connects. If this happens:
+
+   - Simply press `Enter` to respawn your bot
+   - This will reinitiate the connection and allow your bot to join the meeting
+
+2. **Connection failures**
+   - Make sure ngrok is running with the correct configuration
+   - Verify that you've entered the correct ngrok URLs when prompted
+   - Check that your ngrok URLs are accessible (try opening in a browser)
+   - Make sure you're using the `wss://` protocol with ngrok URLs
+
+### Production Considerations
+
+For production deployments, you should:
+
+1. Set the `BASE_URL` environment variable to your server's public domain:
+   ```
+   export BASE_URL=https://your-server-domain.com
+   ```
+2. Ensure your server is accessible on the public internet
+3. Consider using HTTPS/WSS for secure connections in production

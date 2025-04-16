@@ -4,15 +4,16 @@ description: Deploy AI-powered speaking agents in video meetings
 icon: Book
 ---
 
-This repository demonstrates the capabilities of [MeetingBaas](https://meetingbaas.com) 🐟's video meeting APIs by integrating with [Pipecat](https://github.com/pipecat-ai/pipecat)'s Python framework for building voice and multimodal conversational agents.
+```bash
+curl -X POST https://speaking.meetingbaas.com/bots \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meeting_url": "https://us06web.zoom.us/j/123456789?pwd=example",
+    "meeting_baas_api_key": "your-api-key"
+  }'
+```
 
-Our implementation creates AI meeting agents that can join and participate in Google Meet and Microsoft Teams meetings with distinct personalities and context defined in Markdown files.
-
-This implementation extends Pipecat's [WebSocket server implementation](https://github.com/pipecat-ai/pipecat/tree/main/examples/websocket-server) to create:
-
-- Meeting agents that can join Google Meet, Zoom or Microsoft Teams through the [MeetingBaas API](https://meetingbaas.com)
-- Customizable personas with unique context
-- Support for running multiple instances locally or at scale
+This small open-source API demonstrates the capabilities of [MeetingBaas](https://meetingbaas.com) 🐟's video meeting APIs by integrating with [Pipecat](https://github.com/pipecat-ai/pipecat)'s Python framework for building voice and multimodal conversational agents.
 
 <Card
   icon={<Github />}
@@ -21,6 +22,32 @@ This implementation extends Pipecat's [WebSocket server implementation](https://
   description="Clone and star our repository to launch and scale AI-powered meeting agents"
   external
 />
+
+Our implementation creates AI meeting agents that can join and participate in Google Meet and Microsoft Teams meetings with distinct personalities and context defined in Markdown files.
+
+It extends Pipecat's [WebSocket server implementation](https://github.com/pipecat-ai/pipecat/tree/main/examples/websocket-server) to create:
+
+- Meeting agents that can join Google Meet, Zoom or Microsoft Teams through the [MeetingBaas API](https://meetingbaas.com)
+- Customizable personas with unique context
+- Support for running multiple instances locally or at scale
+
+## API Access
+
+The Speaking Bot API is accessible at [speaking.meetingbaas.com](https://speaking.meetingbaas.com). You can access the OpenAPI specification directly for your LLM here: [speaking.meetingbaas.com/openapi.json](https://speaking.meetingbaas.com/openapi.json)
+
+The API follows a minimalist design with sensible defaults while offering optional customization. A bot can be deployed with just a meeting URL and API key, but parameters are available for tailoring behavior:
+
+The API includes features not explicitly defined in the routes documentation:
+
+- WebSocket infrastructure for bidirectional audio streaming with selectable quality (16/24kHz)
+- Persona system with custom voice selection, language preferences, and contextual knowledge
+- Voice Activity Detection with configurable parameters for natural conversation
+- Function calling tools (weather, time, etc.) that can be enabled or disabled
+- LLM context management for consistent, coherent conversations
+
+The join route supports options like custom bot names, avatar images, entry messages, and specialized persona selection.
+
+The API and implementation are open source. We welcome contributions and pull requests from the community. See our [getting started guide](/docs/speaking-bots/getting-started/set-up) for local development setup.
 
 ## Directory Structure
 
