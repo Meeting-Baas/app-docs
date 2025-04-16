@@ -17,7 +17,23 @@ cd speaking-meeting-bot
 
 ### 1. Prerequisites
 
-Install ngrok on your machine if you don't have it already. Follow our [Ngrok Setup Guide](/docs/speaking-bots/getting-started/ngrok-setup) for a quickstart.
+- Python 3.11+
+- `grpc_tools` for protocol buffer compilation
+- Ngrok for local development (follow our [Ngrok Setup Guide](/docs/speaking-bots/getting-started/ngrok-setup))
+- Poetry for dependency management
+
+You'll also need system dependencies for scientific libraries:
+
+```bash
+# macOS (using Homebrew)
+brew install llvm cython
+
+# Ubuntu/Debian
+sudo apt-get install llvm python3-dev cython
+
+# Fedora/RHEL
+sudo dnf install llvm-devel python3-devel Cython
+```
 
 ### 2. Set Up Poetry Environment
 
@@ -28,8 +44,14 @@ curl -sSL https://install.python-poetry.org | python3 -
 # Install Poetry (Windows)
 (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
 
-# Install dependencies
-poetry install
+# Configure Poetry to use Python 3.11+
+poetry env use python3.11
+
+# Install dependencies with LLVM config path
+# On macOS:
+LLVM_CONFIG=$(brew --prefix llvm)/bin/llvm-config poetry install
+# On Linux (path may vary):
+# LLVM_CONFIG=/usr/bin/llvm-config poetry install
 
 # Activate virtual environment
 poetry shell
@@ -52,9 +74,59 @@ Read more in the [official Protocol Buffer documentation](https://protobuf.dev/d
 
 ### 4. Configure Environment
 
-Set up environment variables by following our [Environment Variables Guide](/docs/speaking-bots/getting-started/environment-variables). This will walk you through setting up the required API keys for core functionality and optional features.
+Create a `.env` file based on the template:
 
-### 5. Run your first bot
+```bash
+cp env.example .env
+```
+
+Edit the `.env` file with your API keys. You'll need:
+
+**Required API Keys:**
+
+- `MEETING_BAAS_API_KEY`: For meeting platform integration
+- `OPENAI_API_KEY`: For the conversation LLM
+- `CARTESIA_API_KEY`: For text-to-speech
+- `GLADIA_API_KEY` or `DEEPGRAM_API_KEY`: For speech-to-text
+
+For production, also set:
+
+```
+BASE_URL=https://your-server-domain.com
+```
+
+See our full [Environment Variables Guide](/docs/speaking-bots/getting-started/environment-variables) for more details.
+
+### 5. Run the API Server
+
+The project now follows an API-first approach. There are two ways to run the server:
+
+```bash
+# Standard mode
+poetry run uvicorn app:app --reload --host 0.0.0.0 --port 8766
+
+# Local development mode with ngrok auto-configuration
+poetry run python run.py --local-dev
+```
+
+Once the server is running, you can access:
+
+- Interactive API docs: `http://localhost:8766/docs`
+- OpenAPI specification: `http://localhost:8766/openapi.json`
+
+To create a bot via the API:
+
+```bash
+curl -X POST http://localhost:8766/run-bots \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meeting_url": "https://meet.google.com/xxx-yyyy-zzz",
+    "personas": ["interviewer"],
+    "meeting_baas_api_key": "your-api-key"
+  }'
+```
+
+You can also use our CLI tools for testing:
 
 ```bash
 poetry run python scripts/batch.py -c 1 --meeting-url LINK
